@@ -1,5 +1,12 @@
-import java.awt.*;
-import java.lang.reflect.Array;
+// Course:     	CS4306- section #1
+// Student name:  Quinten Whitaker
+// Student ID:  	000546718
+// Assignment #:   1
+// Due Date:   	9/20/2018
+// Signature:  	Quinten Whitaker
+// Score:  	  	______________
+
+
 import java.util.ArrayList;
 
 
@@ -10,13 +17,32 @@ public class QuickHull
 
     public static void main(String[] args)
     {
+        //Test with predefined data
+        System.out.println("Predefined data:");
         getData();
+        QuickHull(data);
+
+        //Generate random data
+        data.clear();
+        hull.clear();
+
+        System.out.println("\nRandomized Data:");
+        getRandom();
+        QuickHull(data);
+
+    }
+
+    public static void QuickHull(ArrayList<Point> data)
+    {
+        System.out.println("Input: " + data);
+
         //Find left and right most points, A & B, and add them to the convex hull
-        Point A = getLeft(data);
-        Point B = getRight(data);
+        Point A = getMin(data);
+        Point B = getMax(data);
 
         hull.add(A);
         hull.add(B);
+
         //Segment AB divides the remaining points into 2 groups, S1 and S2
         //If the point is on the left side of the line, add it to S1
         //If it is on the right side, add it to S2
@@ -34,14 +60,10 @@ public class QuickHull
                 S2.add(data.get(i));
             }
         }
-        System.out.println("S1: " + S1);
-        System.out.println("S2: " + S2);
-
-        findHull(S1, A, B);
-        findHull(S2, B, A);
+        findHull(S1, B, A); //Lower
+        findHull(S2, A, B); //Upper
 
         System.out.println("The hull consists of " + hull);
-
     }
     public static void findHull(ArrayList<Point> Sk, Point P, Point Q)
     {
@@ -50,7 +72,7 @@ public class QuickHull
         boolean hasPoints = false;
         for(int i =0; i<Sk.size();i++)
         {
-            if(getPosition(P,Q,Sk.get(i)) > 0)
+            if(getPosition(P,Q,Sk.get(i)) < 0)
             {
                 hasPoints = true;
             }
@@ -73,23 +95,22 @@ public class QuickHull
         }
         //Add C to the convex hull
         hull.add(C);
-        System.out.println("Point added to hull: " + C);
         //Add points to left of C to S1 && points right of C to S2
         ArrayList<Point> S3 = new ArrayList<>();
         ArrayList<Point> S4 = new ArrayList<>();
+
         for(int i=0; i<Sk.size();i++)
         {
-            if(getPosition(P,Q,C) > 0)
+            if(getPosition(P,C,Sk.get(i)) < 0)
             {
                 S3.add(Sk.get(i));
             }
-            else if(getPosition(P,Q,C) < 0)
+            if(getPosition(C,Q,Sk.get(i)) < 0)
             {
                 S4.add(Sk.get(i));
             }
         }
-        System.out.println("S3" + S3);
-        System.out.println("S4" + S4);
+
 
         findHull(S3, P, C);
         findHull(S4, C, Q);
@@ -114,7 +135,15 @@ public class QuickHull
         data.add(new Point(22,19));
     }
 
-    public static Point getLeft(ArrayList<Point> s)
+    public static void getRandom()
+    {
+        for(int i = 0; i < 15; i++)
+        {
+            data.add(new Point((int)(Math.random()*20), (int)(Math.random() * 20)));
+        }
+    }
+
+    public static Point getMin(ArrayList<Point> s)
     {
         Point min = s.get(0);
         for(int i=0;i<s.size();i++)
@@ -128,7 +157,7 @@ public class QuickHull
         return min;
     }
 
-    public static Point getRight(ArrayList<Point> s)
+    public static Point getMax(ArrayList<Point> s)
     {
         Point max = s.get(0);
         for(int i=0;i<s.size();i++)
@@ -144,20 +173,29 @@ public class QuickHull
 
     public static int getPosition(Point A, Point B, Point S)
     {
-        int position = (int)((B.getX() - A.getX()) * (S.getY() - A.getY()) - (B.getY() - A.getY()) * (S.getX() - A.getX()));
+        int x1 = (int)A.getX();
+        int y1 = (int)A.getY();
+        int x2 = (int)B.getX();
+        int y2 = (int)B.getY();
+        int x = (int)S.getX();
+        int y = (int)S.getY();
+
+        int position = (int)((x-x1)*(y2-y1) - (y-y1)*(x2-x1));
         return position;
     }
 
     public static double findDistance(Point A, Point B, Point S)
     {
-        int Ax = (int)A.getX();
-        int Ay = (int)A.getY();
-        int Bx = (int)B.getX();
-        int By = (int)B.getY();
-        int Sx = (int)S.getX();
-        int Sy = (int)S.getY();
+        int X1 = (int)A.getX();
+        int Y1 = (int)A.getY();
+        int X2 = (int)B.getX();
+        int Y2 = (int)B.getY();
+        int X0 = (int)S.getX();
+        int Y0 = (int)S.getY();
 
-        double d = Math.abs(((Bx - Ax)*(Ay - Sy) - (Ax -Sx)*(By -Ay))/Math.sqrt(Math.pow(Bx - Ax,2) + Math.pow(By - Ay, 2)));
-        return d;
+        double num = Math.abs(((Y2 - Y1)* X0) - ((X2 - X1) * Y0) + (X2*Y1) - (Y2 * X1));
+        double denom = Math.sqrt(Math.pow((Y2-Y1),2) + Math.pow((X2-X1),2));
+
+        return num / denom;
     }
 }
